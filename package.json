@@ -1,11 +1,14 @@
 {
   "name": "sistema-pedidos-restaurante",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Sistema de pedidos web + voz (Vapi) + impresora ESC/POS",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "dev": "node --watch server/index.js",
+    "dev:web": "npm run dev --prefix web",
+    "build": "npm ci --prefix web && npm run build --prefix web",
+    "test": "node --test server/test/orders.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -18,5 +21,7 @@
   "optionalDependencies": {
     "node-thermal-printer": "^4.4.4"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

@@ -3,3 +3,6 @@ data.db
 data.db-*
 tickets/
 .env
+web/node_modules/
+web/dist/
+*.log

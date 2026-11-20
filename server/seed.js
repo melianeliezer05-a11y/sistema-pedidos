@@ -1,5 +1,7 @@
+const crypto = require('node:crypto');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
+const { adminUsers, adminPassword } = require('./config');
 const DEFAULT_INGREDIENTS = [
   { id: 'pan', name: 'Pan de hamburguesa', emoji: '🍞', stock: 40, minStock: 8, unit: 'u' },
   { id: 'carne', name: 'Carne de res', emoji: '🥩', stock: 30, minStock: 6, unit: 'u' },
@@ -19,21 +21,23 @@ const DEFAULT_PRODUCTS = [
   { id: 'papas', name: 'Papas Fritas', emoji: '🍟', price: 3.00, description: 'Porción de papas fritas crujientes.', recipe: { papas: 1 }, removable: [], extras: [] },
   { id: 'bebida', name: 'Bebida', emoji: '🥤', price: 2.00, description: 'Lata de refresco frío.', recipe: { bebida: 1 }, removable: [], extras: [] }
 ];
+function seedAdmins() {
+  const exists = db.prepare('SELECT 1 FROM users WHERE username = ?');
+  const insert = db.prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'admin')");
+  const missing = adminUsers.filter((u) => !exists.get(u));
+  if (!missing.length) return;
+  let password = adminPassword;
+  if (!password) {
+    password = crypto.randomBytes(9).toString('base64url');
+    console.warn(`[seed] ADMIN_PASSWORD no definido. Contraseña inicial generada para ${missing.join(', ')}: ${password}`);
+  }
+  const hash = bcrypt.hashSync(password, 10);
+  db.transaction(() => { for (const u of missing) insert.run(u, hash); })();
+  console.log(`[seed] Usuarios creados: ${missing.join(', ')}`);
+}
+
 function seed() {
-  const adminUsers = ['Robert', 'Monica'];
-  const adminPass = process.env.ADMIN_PASSWORD || 'barmonica2026';
-  const hash = bcrypt.hashSync(adminPass, 10);
-  const upsertUser = db.prepare(`
-    INSERT INTO users (username, password_hash, role)
-    VALUES (?, ?, 'admin')
-    ON CONFLICT(username) DO UPDATE SET password_hash = excluded.password_hash, role = 'admin'
-  `);
-  const seedUsers = db.transaction((users) => {
-    for (const username of users) upsertUser.run(username, hash);
-  });
-  seedUsers(adminUsers);
-  db.prepare('DELETE FROM users WHERE username NOT IN (?, ?)').run(...adminUsers);
-  console.log(`[seed] Usuarios admin disponibles: ${adminUsers.join(', ')}`);
+  seedAdmins();
   const ingCount = db.prepare('SELECT COUNT(*) AS n FROM ingredients').get().n;
   if (ingCount === 0) {
     const insert = db.prepare('INSERT INTO ingredients (id, name, emoji, stock, min_stock, unit) VALUES (?, ?, ?, ?, ?, ?)');
