@@ -1,12 +1,34 @@
 const express = require('express');
+const crypto = require('node:crypto');
 const db = require('../db');
 const { requireAdmin } = require('../auth');
 
 const router = express.Router();
 const MAX_ADJUST = 10_000;
 
+function genId() {
+  return `ing-${crypto.randomBytes(4).toString('hex')}`;
+}
+
 router.get('/', requireAdmin, (_req, res) => {
   res.json({ ingredients: db.prepare('SELECT * FROM ingredients ORDER BY name').all() });
+});
+
+router.post('/', requireAdmin, (req, res) => {
+  const { name, emoji, stock, minStock, unit } = req.body || {};
+  if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es obligatorio' });
+  if (!emoji || !emoji.trim()) return res.status(400).json({ error: 'El emoji es obligatorio' });
+  const s = Number(stock ?? 0);
+  const m = Number(minStock ?? 0);
+  if (!Number.isFinite(s) || s < 0 || s > MAX_ADJUST) return res.status(400).json({ error: 'Stock no válido' });
+  if (!Number.isFinite(m) || m < 0 || m > MAX_ADJUST) return res.status(400).json({ error: 'Stock mínimo no válido' });
+  const u = (unit || 'u').trim().slice(0, 10);
+
+  const id = genId();
+  db.prepare('INSERT INTO ingredients (id, name, emoji, stock, min_stock, unit) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(id, name.trim().slice(0, 60), emoji.trim().slice(0, 4), s, m, u);
+
+  res.json({ ok: true, id });
 });
 
 router.patch('/:id/stock', requireAdmin, (req, res) => {
@@ -29,6 +51,16 @@ router.patch('/:id/threshold', requireAdmin, (req, res) => {
   if (!Number.isFinite(v) || v < 0 || v > MAX_ADJUST) return res.status(400).json({ error: 'Valor no válido' });
   const info = db.prepare('UPDATE ingredients SET min_stock = ? WHERE id = ?').run(v, req.params.id);
   if (info.changes === 0) return res.status(404).json({ error: 'Ingrediente no existe' });
+  res.json({ ok: true });
+});
+
+router.delete('/:id', requireAdmin, (req, res) => {
+  const ing = db.prepare('SELECT * FROM ingredients WHERE id = ?').get(req.params.id);
+  if (!ing) return res.status(404).json({ error: 'Ingrediente no existe' });
+  // Verificar que no se usa en recetas
+  const used = db.prepare(`SELECT id FROM products WHERE recipe_json LIKE ?`).get(`%"${req.params.id}"%`);
+  if (used) return res.status(400).json({ error: 'No se puede borrar: se usa en al menos un producto' });
+  db.prepare('DELETE FROM ingredients WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
 

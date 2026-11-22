@@ -45,10 +45,16 @@ export const api = {
     ticket: (id: string) => request<{ ticket: string }>(`/api/orders/${id}/ticket`).then((r) => r.ticket),
     reprint: (id: string) => request<{ print: { ok: boolean; mode: string } }>(`/api/print/${id}`, { method: 'POST' }),
     ingredients: () => request<{ ingredients: Ingredient[] }>('/api/ingredients').then((r) => r.ingredients),
+    createIngredient: (data: { name: string; emoji: string; stock: number; minStock: number; unit: string }) =>
+      request<{ ok: boolean; id: string }>('/api/ingredients', { method: 'POST', json: data }),
+    deleteIngredient: (id: string) => request(`/api/ingredients/${id}`, { method: 'DELETE' }),
     adjustStock: (id: string, delta: number) => request(`/api/ingredients/${id}/stock`, { method: 'PATCH', json: { delta } }),
     setThreshold: (id: string, minStock: number) => request(`/api/ingredients/${id}/threshold`, { method: 'PATCH', json: { minStock } }),
     movements: () => request<{ movements: Movement[] }>('/api/ingredients/movements?limit=200').then((r) => r.movements),
     products: () => request<{ products: Product[] }>('/api/products/admin').then((r) => r.products),
+    createProduct: (data: { name: string; emoji: string; price: number; description: string; recipe: Record<string, number>; removable: string[]; extras: Array<{ id: string; name: string; price: number; ingredient: string; qty: number }> }) =>
+      request<{ ok: boolean; id: string }>('/api/products/admin', { method: 'POST', json: data }),
+    deleteProduct: (id: string) => request(`/api/products/admin/${id}`, { method: 'DELETE' }),
     updateProduct: (id: string, patch: Partial<Pick<Product, 'name' | 'price' | 'description' | 'active'>>) =>
       request(`/api/products/${id}`, { method: 'PATCH', json: patch }),
     saveSettings: (s: Settings) => request<Settings>('/api/settings', { method: 'PUT', json: s }),

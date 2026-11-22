@@ -47,7 +47,7 @@ function Body({ product: p, onClose }: { product: Product; onClose: () => void }
 
   return (
     <>
-      <div className="sticker mx-4 mt-4 mb-1 grid h-28 place-items-center rounded-xl text-6xl select-none" style={{ backgroundColor: tileFor(p.id) }} aria-hidden>{p.emoji}</div>
+      <div className="border border-border mx-4 mt-4 mb-1 grid h-28 place-items-center rounded-md text-6xl select-none" style={{ backgroundColor: tileFor(p.id) }} aria-hidden>{p.emoji}</div>
       <DialogHeader className="px-5 pt-3">
         <DialogTitle className="text-2xl font-bold">{p.name}</DialogTitle>
         <DialogDescription className="text-sm">{p.description}</DialogDescription>
@@ -86,9 +86,9 @@ function Body({ product: p, onClose }: { product: Product; onClose: () => void }
       </div>
 
       <div className="sticky bottom-0 flex items-center gap-3 border-t border-border bg-popover px-5 py-4">
-        <div className="flex items-center gap-1 rounded-xl border border-border" role="group" aria-label="Cantidad">
+        <div className="flex items-center gap-1 rounded-md border border-border" role="group" aria-label="Cantidad">
           <Button variant="ghost" size="icon" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="Menos"><Minus aria-hidden /></Button>
-          <span className="num w-6 text-center font-extrabold" aria-live="polite">{qty}</span>
+          <span className="num w-6 text-center font-semibold" aria-live="polite">{qty}</span>
           <Button variant="ghost" size="icon" onClick={() => setQty((q) => Math.min(maxQty, q + 1))} disabled={qty >= maxQty} aria-label="Más"><Plus aria-hidden /></Button>
         </div>
         <Button size="lg" className="flex-1" onClick={add}>

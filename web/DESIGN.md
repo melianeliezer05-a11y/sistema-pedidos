@@ -42,3 +42,9 @@ Contraste AA mínimo, foco visible con anillo mostaza+tinta, estados no solo por
 - **Pedidos**: tablero de 3 columnas (Recibidos, Preparando, Listos) ordenado por llegada; el temporizador pasa a mostaza a 8 min y a rojo a 15 min (icono + texto, no solo color). Historial y exportación CSV.
 - **Teclado**: `Ctrl/⌘ K` busca pedidos, secciones y acciones; `1-6` cambian de sección. Sonido de aviso de pedido nuevo (opt-out, guardado en el navegador).
 - **Tema**: claro/oscuro/sistema con selector manual; el riel se mantiene oscuro en ambos.
+
+## Stack de componentes (v2.2)
+El panel usa componentes reales, no HTML a mano: shadcn/ui (base-nova sobre Base UI): `Sidebar`, `Command` (paleta Ctrl+K), `Card`, `Chart` (Recharts), `Tooltip`, `ToggleGroup`, `Field`/`FieldGroup`, `InputGroup`, `Empty`, `Badge`, `Avatar`, `Spinner`. Magic UI: `NumberTicker` (KPIs), `BlurFade` (entrada de tarjetas). Motion: `motion/react` en las tarjetas de pedido. Tokens de transitions.dev (`--duration-*`, `--ease-smooth-out`, `--distance-*`, `--blur-*`) al final de `web/src/index.css`, con `prefers-reduced-motion` a 0 ms; sin `transition-all` ni `ease-in`.
+
+## Identidad v3 «Ticket» (sustituye a la anterior)
+Comanda de bar: papel/tinta monocromo, un solo acento `--signal` (naranja) solo para estado/alertas. Geist + Geist Mono (cifras y etiquetas `.label`/`.num`). Radio 6 px, líneas punteadas, sombra dura `6px 6px 0`. Carta = lista con puntos guía; pedido = ticket fijo en escritorio y hoja inferior en móvil; seguimiento = ticket con barra de 4 pasos; panel = misma paleta, KPIs en tira.

@@ -1,5 +1,4 @@
-import { Check, ChefHat, ChevronLeft, ClipboardCheck, PackageCheck, XCircle, type LucideIcon } from 'lucide-react'
-import { motion } from 'motion/react'
+import { ChevronLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -11,13 +10,12 @@ import { cn } from '@/lib/utils'
 
 export const LAST_ORDER_KEY = 'pedidos.lastOrder'
 
-const ICON: Record<OrderStatus, LucideIcon> = { pending: ClipboardCheck, preparing: ChefHat, ready: PackageCheck, delivered: Check, cancelled: XCircle }
 const MESSAGE: Record<OrderStatus, string> = {
-  pending: 'Hemos recibido tu pedido. En un momento lo ven en cocina.',
-  preparing: 'Ya lo estamos preparando.',
-  ready: '¡Listo! Recógelo en barra.',
-  delivered: 'Entregado. ¡Que aproveche!',
-  cancelled: 'Este pedido se ha cancelado. Si no esperabas esto, avisa en barra.',
+  pending: 'Recibido. En un momento lo ven en cocina.',
+  preparing: 'En la plancha.',
+  ready: 'Listo. Recógelo en barra.',
+  delivered: 'Entregado. Que aproveche.',
+  cancelled: 'Pedido cancelado. Si no lo esperabas, avisa en barra.',
 }
 
 export default function Tracking() {
@@ -50,55 +48,49 @@ export default function Tracking() {
   const step = status ? STATUS_FLOW.indexOf(status) : -1
 
   return (
-    <main className="mx-auto min-h-dvh max-w-lg px-4 py-6">
-      <Button variant="ghost" nativeButton={false} render={<Link to="/" />} className="-ml-2"><ChevronLeft aria-hidden /> Volver a la carta</Button>
+    <main className="mx-auto min-h-dvh max-w-md px-4 py-6">
+      <Button variant="ghost" size="sm" nativeButton={false} render={<Link to="/" />} className="-ml-2"><ChevronLeft data-icon="inline-start" /> Carta</Button>
 
       {missing ? (
-        <div className="mt-10 text-center">
-          <h1 className="text-3xl font-bold">No encontramos ese pedido</h1>
+        <div className="mt-10">
+          <h1 className="text-3xl font-semibold tracking-tight">Pedido no encontrado</h1>
           <p className="mt-2 text-muted-foreground">Revisa el enlace o haz un pedido nuevo.</p>
         </div>
       ) : !order ? (
-        <div className="mt-8 grid gap-4"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-40" /><Skeleton className="h-32" /></div>
+        <div className="mt-8 grid gap-4"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-64" /></div>
       ) : (
-        <>
-          <p className="mt-6 text-sm font-bold tracking-wide text-muted-foreground uppercase">Pedido <span className="num">{order.id}</span></p>
-          <h1 className="mt-1 text-4xl leading-tight font-extrabold" aria-live="polite">{STATUS_LABEL[order.status]}</h1>
-          <p className="mt-2 text-lg text-muted-foreground" aria-live="polite">{MESSAGE[order.status]}</p>
+        <div className="mt-6 border border-foreground bg-card shadow-[6px_6px_0_0_var(--foreground)]">
+          <div className="px-5 pt-5">
+            <p className="label">Pedido</p>
+            <p className="num text-5xl font-medium">{order.id}</p>
+          </div>
 
-          {status !== 'cancelled' && (
-            <ol className="mt-8 grid grid-cols-4 gap-2" aria-label="Progreso del pedido">
-              {STATUS_FLOW.map((s, i) => {
-                const Icon = ICON[s]
-                const done = i <= step
-                return (
-                  <li key={s} className="grid justify-items-center gap-2 text-center" aria-current={i === step ? 'step' : undefined}>
-                    <motion.span
-                      animate={{ scale: i === step ? 1.12 : 1 }}
-                      transition={{ duration: 0.2, ease: 'easeOut' }}
-                      className={cn('grid size-12 place-items-center rounded-full border-2 border-foreground', done ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground')}
-                    >
-                      <Icon className="size-5" aria-hidden />
-                    </motion.span>
-                    <span className={cn('text-xs font-bold', done ? 'text-foreground' : 'text-muted-foreground')}>{STATUS_LABEL[s]}</span>
+          <div className="px-5 py-6">
+            <h1 className="text-3xl font-semibold tracking-tight" aria-live="polite">{STATUS_LABEL[order.status]}</h1>
+            <p className="mt-1 text-muted-foreground" aria-live="polite">{MESSAGE[order.status]}</p>
+            {status !== 'cancelled' && (
+              <ol className="mt-5 grid grid-cols-4 gap-1.5" aria-label="Progreso del pedido">
+                {STATUS_FLOW.map((s, i) => (
+                  <li key={s} aria-current={i === step ? 'step' : undefined}>
+                    <span className={cn('block h-2 transition-colors duration-[var(--duration-fast)]', i <= step ? (i === step ? 'bg-signal' : 'bg-foreground') : 'bg-border')} />
+                    <span className={cn('label mt-1.5 block', i === step && 'text-foreground')}>{STATUS_LABEL[s]}</span>
                   </li>
-                )
-              })}
-            </ol>
-          )}
+                ))}
+              </ol>
+            )}
+            {error && <p role="alert" className="mt-4 text-sm text-muted-foreground">Sin conexión, reintentando… ({error})</p>}
+          </div>
 
-          {error && <p role="alert" className="mt-4 text-sm text-muted-foreground">Sin conexión, reintentando… ({error})</p>}
-
-          <section className="mt-8 rounded-2xl border border-border bg-card p-5">
-            <h2 className="mb-3 text-lg font-bold">Tu pedido</h2>
-            <ul className="grid gap-2">
-              {order.items.map((it, i) => (
-                <li key={i} className="flex gap-3"><span aria-hidden>{it.emoji}</span><span className="num font-bold">{it.quantity}×</span><span>{it.name}</span></li>
-              ))}
-            </ul>
-            <p className="mt-4 flex justify-between border-t border-dashed border-border pt-3 text-lg font-extrabold"><span>Total</span><span className="num">{formatMoney(order.total)}</span></p>
-          </section>
-        </>
+          <ul className="border-t border-dashed border-border px-5 py-3">
+            {order.items.map((it, i) => (
+              <li key={i} className="flex gap-3 py-1.5"><span className="num w-8 text-muted-foreground">{it.quantity}×</span><span className="flex-1">{it.emoji} {it.name}</span></li>
+            ))}
+          </ul>
+          <div className="mx-5 flex items-baseline justify-between border-t-2 border-foreground py-4">
+            <span className="label">Total</span><span className="num text-2xl font-medium">{formatMoney(order.total)}</span>
+          </div>
+          <div className="tear" aria-hidden />
+        </div>
       )}
     </main>
   )

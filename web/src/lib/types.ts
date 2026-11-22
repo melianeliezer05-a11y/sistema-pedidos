@@ -14,6 +14,10 @@ export interface Product {
   extras: (Extra & { ingredient: string; qty: number })[]
   availableUnits: number
   recipeDetail?: { id: string; qty: number; name: string; emoji: string }[]
+  // Admin fields for creation/editing
+  recipe?: Record<string, number>
+  removableIds?: string[]
+  extrasDef?: Array<{ id: string; name: string; price: number; ingredient: string; qty: number }>
 }
 
 export interface Settings { restaurantName: string; clientAlertUnits: number }
